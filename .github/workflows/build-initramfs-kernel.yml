@@ -16,8 +16,6 @@ on:
 env:
   REPO_URL: https://git.openwrt.org/openwrt/openwrt.git
   REPO_BRANCH: openwrt-21.02
-  CONFIG_FILE: mini.config
-  UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
 
@@ -49,21 +47,35 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
+    - name: Clean feeds
+      run: cd openwrt && ./scripts/feeds clean
+
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
 
-    - name: Load custom configuration
+    - name: Generate configuration file
       run: |
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        rm -f ./.config*
+        touch ./.config
+        cat >> .config <<EOF
+        CONFIG_TARGET_ramips=y
+        CONFIG_TARGET_ramips_mt7621=y
+        CONFIG_TARGET_ramips_mt7621_DEVICE_xiaomi_redmi-router-ac2100=y
+        CONFIG_KERNEL_BUILD_DOMAIN="GitHub Actions"
+        CONFIG_KERNEL_BUILD_USER="LjzKirito"
+        CONFIG_PACKAGE_luci=y
+        CONFIG_LUCI_LANG_zh_Hans=y
+        EOF
+        sed -i 's/^[ \t]*//g' ./.config
+        make defconfig
 
     - name: Download package
       id: package
       run: |
         cd openwrt
-        make defconfig
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
@@ -85,7 +97,7 @@ jobs:
 
     - name: Organize files
       id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      if: (!cancelled())
       run: |
         cd openwrt/bin/targets/*/*
         rm -rf packages
@@ -103,9 +115,9 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
       run: |
-        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
+        echo "::set-output name=release_tag::Initramfs-kernel-$(date +"%Y.%m.%d")"
         touch release.txt
-        echo "## Offical Openwrt Initramfs-kernel Release $(date +"%Y.%m.%d-%H:%M")" >> release.txt
+        echo "## Offical Openwrt Initramfs-kernel Release $(date +"%Y.%m.%d")" >> release.txt
         echo "- initramfs-kernel.bin" >> release.txt
         echo "  md5: $(md5sum ${{ env.FIRMWARE }}/*initramfs-kernel.bin | cut -d" " -f1)" >> release.txt
         echo "  sha256: $(cat ${{ env.FIRMWARE }}/sha256sums | grep -oE ".*initramfs-kernel.bin" | grep -oE "\w{64}")" >> release.txt
@@ -119,5 +131,4 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: |
-          ${{ env.FIRMWARE }}/*initramfs-kernel.bin
+        files: ${{ env.FIRMWARE }}/*initramfs-kernel.bin
