@@ -125,8 +125,8 @@ jobs:
         cp openwrt/bin/packages/*/*/*ssr-plus*.ipk openwrt/bin/targets/*/*/ || true
         cp openwrt/bin/packages/*/*/*passwall*.ipk openwrt/bin/targets/*/*/ || true
         cp openwrt/bin/packages/*/*/xray*.ipk openwrt/bin/targets/*/*/ || true
-        rm -f openwrt/bin/targets/*/*/*kernel*.bin || true
-        rm -f openwrt/bin/targets/*/*/*rootfs*.bin || true
+        rm -f openwrt/bin/targets/*/*/*squashfs-kernel*.bin || true
+        rm -f openwrt/bin/targets/*/*/*squashfs-rootfs*.bin || true
 
     - name: Organize files
       id: organize
