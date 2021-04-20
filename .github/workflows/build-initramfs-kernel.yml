@@ -48,7 +48,7 @@ jobs:
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Patch openwrt
-      if: ([ -e patches ])
+      if: ( -e patches )
       run: |
         cd openwrt
         cat ./patches/*.patch | patch -p1
