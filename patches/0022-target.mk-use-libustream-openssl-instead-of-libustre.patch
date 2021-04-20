@@ -19,9 +19,9 @@ index 569a04ce0e..2ae1ee5779 100644
  	libgcc \
 -	libustream-wolfssl \
 +	libustream-openssl \
- 	luci \
- 	luci-compat \
  	logd \
+ 	mtd \
+ 	netifd \
 -- 
 2.25.1
 
