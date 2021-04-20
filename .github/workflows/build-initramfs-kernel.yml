@@ -48,10 +48,9 @@ jobs:
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Patch openwrt
-      if: ( -e patches )
       run: |
         cd openwrt
-        cat ./patches/*.patch | patch -p1
+        cat $GITHUB_WORKSPACE/patches/*.patch | patch -p1
 
     - name: Clean feeds
       run: cd openwrt && ./scripts/feeds clean
