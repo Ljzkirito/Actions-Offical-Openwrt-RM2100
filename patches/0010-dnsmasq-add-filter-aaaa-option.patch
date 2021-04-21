@@ -19,7 +19,7 @@ index 8c42ef782e..6d929a9e57 100644
  	#list bogusnxdomain     '64.94.110.11'
  	option localservice	1  # disable to allow DNS requests from non-local subnets
  	option ednspacket_max	1232
-+	option filteraaaa	1
++	option filteraaaa	0
  
  config dhcp lan
  	option interface	lan
