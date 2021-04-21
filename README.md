@@ -36,6 +36,7 @@ make defconfig
 
 ## 相关参考
 
+- [Patch来源](https://github.com/fanck0605/openwrt-nanopi-r2s)
 - [超简单云编译](https://github.com/281677160/build-openwrt)
 - [借助 GitHub Actions 的 OpenWrt 在线集成自动编译](https://github.com/KFERMercer/OpenWrt-CI)
 - [qughij/openwrt-xiaoyu_xy-c5](https://github.com/qughij/openwrt-xiaoyu_xy-c5)
