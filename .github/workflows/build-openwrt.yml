@@ -54,6 +54,11 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
+    - name: Patch openwrt
+      run: |
+        cd openwrt
+        cat $GITHUB_WORKSPACE/patches/*.patch | patch -p1
+
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
@@ -67,16 +72,30 @@ jobs:
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
-    - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
-
-    - name: Load custom configuration
+    - name: Patch feeds
       run: |
-        [ -e files ] && mv files openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_P2_SH
+        cd openwrt/feeds/luci
+        cat $GITHUB_WORKSPACE/patches/luci/*.patch | patch -p1
+
+    - name: Convert translation
+      run: |
+        chmod +x convert_translation.sh
+        cd openwrt/package
+        $GITHUB_WORKSPACE/convert_translation.sh
+
+    - name: Create acl files
+      run: |
+        chmod +x create_acl_for_luci.sh
         cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
+        $GITHUB_WORKSPACE/create_acl_for_luci.sh -a
+
+    - name: Install feeds
+      run: |
+        cd openwrt
+        ./scripts/feeds uninstall -a
+        ./scripts/feeds install -f -p passwall -a
+        ./scripts/feeds install -f -p helloworld -a
+        ./scripts/feeds install -a
 
     - name: Download package
       id: package
